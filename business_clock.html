@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>6 Business Hours Ahead Clock</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #111;
+      color: #0f0;
+      text-align: center;
+      padding-top: 100px;
+    }
+    h1 {
+      font-size: 3em;
+    }
+    p {
+      font-size: 1.2em;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="clock">Loading...</h1>
+  <p>(Current time + 6 business hours — 9 AM to 5 PM, Mon–Fri)</p>
+
+  <script>
+    function addBusinessHours(date, hoursToAdd) {
+      const startHour = 9;
+      const endHour = 17;
+      let remainingHours = hoursToAdd;
+
+      let current = new Date(date);
+
+      while (remainingHours > 0) {
+        // Skip weekends
+        while (current.getDay() === 0 || current.getDay() === 6) {
+          current.setDate(current.getDate() + 1);
+          current.setHours(startHour, 0, 0, 0);
+        }
+
+        const currentHour = current.getHours();
+        const currentMinutes = current.getMinutes();
+
+        // If before workday starts, set to 9 AM
+        if (currentHour < startHour) {
+          current.setHours(startHour, 0, 0, 0);
+        }
+        // If after workday ends, move to next business day 9 AM
+        else if (currentHour >= endHour) {
+          current.setDate(current.getDate() + 1);
+          current.setHours(startHour, 0, 0, 0);
+          continue;
+        }
+
+        // Calculate how many work hours left in current day
+        const hoursLeftToday = endHour - current.getHours() - (current.getMinutes() > 0 ? 1 : 0);
+
+        if (remainingHours <= hoursLeftToday) {
+          current.setHours(current.getHours() + remainingHours);
+          break;
+        } else {
+          remainingHours -= hoursLeftToday;
+          current.setDate(current.getDate() + 1);
+          current.setHours(startHour, 0, 0, 0);
+        }
+      }
+
+      return current;
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const future = addBusinessHours(now, 6);
+
+      const formatted = future.toLocaleString(undefined, {
+        weekday: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+
+      document.getElementById('clock').textContent = formatted;
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock(); // Initial call
+  </script>
+</body>
+</html>
